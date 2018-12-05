@@ -97,6 +97,39 @@ func (c Command) FullName() string {
 // Commands is a slice of Command
 type Commands []Command
 
+func (c Command) hasFlag(flag Flag) bool {
+	aliases := []string{}
+	eachName(flag.GetName(), func(name string) {
+		aliases = append(aliases, name)
+	})
+
+	result := false
+	for _, f := range c.Flags {
+		if result {
+			return true
+		}
+		eachName(f.GetName(), func(alias string) {
+			if result {
+				return
+			}
+			for _, s := range aliases {
+				if s == alias {
+					result = true
+					break
+				}
+			}
+		})
+	}
+
+	return false
+}
+
+func (c *Command) appendFlag(flag Flag) {
+	if !c.hasFlag(flag) {
+		c.Flags = append(c.Flags, flag)
+	}
+}
+
 // Run invokes the command given the context, parses ctx.Args() to generate command-specific flags
 func (c Command) Run(ctx *Context) (err error) {
 	if len(c.Subcommands) > 0 {
@@ -104,11 +137,13 @@ func (c Command) Run(ctx *Context) (err error) {
 	}
 
 	if !c.HideHelp && (HelpFlag != BoolFlag{}) {
-		// append help to flags
-		c.Flags = append(
-			c.Flags,
-			HelpFlag,
-		)
+		c.appendFlag(HelpFlag)
+	}
+
+	for _, f := range ctx.App.Flags {
+		if f != HelpFlag {
+			c.appendFlag(f)
+		}
 	}
 
 	set, err := c.parseFlags(ctx.Args().Tail())
