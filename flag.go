@@ -88,8 +88,16 @@ func flagSet(set *flag.FlagSet, name string, flags []Flag) (*flag.FlagSet, error
 	if set == nil {
 		set = flag.NewFlagSet(name, flag.ContinueOnError)
 	}
-
 	for _, f := range flags {
+		hasFlag := false
+		eachName(f.GetName(), func(name string) {
+			if set.Lookup(name) != nil {
+				hasFlag = true
+			}
+		})
+		if hasFlag {
+			continue
+		}
 		//TODO remove in v2 when errorableFlag is removed
 		if ef, ok := f.(errorableFlag); ok {
 			if err := ef.ApplyWithError(set); err != nil {
