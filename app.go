@@ -187,7 +187,7 @@ func (a *App) Run(arguments []string) (err error) {
 	shellComplete, arguments := checkShellCompleteFlag(a, arguments)
 
 	// parse flags
-	set, err := flagSet(a.Name, a.Flags)
+	set, err := flagSet(nil, a.Name, a.Flags)
 	if err != nil {
 		return err
 	}
@@ -306,7 +306,7 @@ func (a *App) RunAsSubcommand(ctx *Context) (err error) {
 	a.Commands = newCmds
 
 	// parse flags
-	set, err := flagSet(a.Name, a.Flags)
+	set, err := flagSet(nil, a.Name, a.Flags)
 	if err != nil {
 		return err
 	}
