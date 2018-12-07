@@ -136,17 +136,7 @@ func (c Command) Run(ctx *Context) (err error) {
 		return c.startApp(ctx)
 	}
 
-	if !c.HideHelp && (HelpFlag != BoolFlag{}) {
-		c.appendFlag(HelpFlag)
-	}
-
-	for _, f := range ctx.App.Flags {
-		if f != HelpFlag {
-			c.appendFlag(f)
-		}
-	}
-
-	set, err := c.parseFlags(ctx.Args().Tail())
+	set, err := c.parseFlags(ctx.FlagSet(), ctx.Args().Tail())
 
 	context := NewContext(ctx.App, set, ctx)
 	context.Command = c
@@ -205,8 +195,8 @@ func (c Command) Run(ctx *Context) (err error) {
 	return err
 }
 
-func (c *Command) parseFlags(args Args) (*flag.FlagSet, error) {
-	set, err := flagSet(c.Name, c.Flags)
+func (c *Command) parseFlags(set *flag.FlagSet, args Args) (*flag.FlagSet, error) {
+	set, err := flagSet(set, c.Name, c.Flags)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +241,7 @@ PARSE:
 				newArgs = append(newArgs, args[i+1:]...)
 				args = newArgs
 				// now reset the flagset parse again
-				set, err = flagSet(c.Name, c.Flags)
+				set, err = flagSet(nil, c.Name, c.Flags)
 				if err != nil {
 					return nil, err
 				}
